@@ -5,6 +5,8 @@ window.onload = function(){
 	bookTableBody = document.getElementById("bookTableBody");
 	formAddBook = document.getElementById("formAddBook");
 	formAddBook.onsubmit = handleAddBook;
+
+	refreshBookList();
 }
 
 //// DATA ////////////////////////////////////////////////////////////
@@ -12,7 +14,7 @@ window.onload = function(){
 function refreshBookList(){
 	// build request
 	let request = new XMLHttpRequest();
-	request.open("GET", "/json", true);
+	request.open("GET", "/books", true);
 
 	request.onload = function(evt){
 		console.log(evt.target.response);
@@ -28,6 +30,18 @@ function refreshBookList(){
 
 function makeBookTableRow(book){
 	let row = document.createElement("tr");
+
+	// delete button
+	let btn_delete = document.createElement("button");
+	btn_delete.innerText = "X";
+	btn_delete.className = "btn btn-outline-danger btn-sm"
+	btn_delete.setAttribute("type", "button");
+	btn_delete.onclick = () => { handleDeleteBook(book.id) };
+	
+	// row data
+	let td_delete = document.createElement("td");
+	td_delete.appendChild(btn_delete);
+	row.appendChild(td_delete);
 	
 	let td_title = document.createElement("td");
 	td_title.innerText = book.title;
@@ -55,12 +69,29 @@ function displayBookList(bookList){
 
 //// EVENT HANDLERS //////////////////////////////////////////////////
 
+function handleDeleteBook(bookId){
+	// build request
+	let request = new XMLHttpRequest();
+	request.open("DELETE", "/books/" + bookId, true);
+	request.setRequestHeader("Content-Type", "application/json");
+
+	request.onload = function(){
+		refreshBookList();
+	}
+
+	request.onerror = function(){
+		// TODO: handle delete error
+	}
+
+	request.send();
+}
+
 function handleAddBook(event){
 	event.preventDefault();
 
 	// build request
 	let request = new XMLHttpRequest();
-	request.open("POST", "/add", true);
+	request.open("POST", "/books", true);
 	request.setRequestHeader("Content-Type", "application/json");
 	
 	request.onload = function(){

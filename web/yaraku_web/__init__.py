@@ -41,7 +41,7 @@ def create_app(test_config=None):
 	db.create_all();
 
 	@app.route("/", methods=["GET"])
-	def hello():
+	def index():
 		book_list = [];
 		books = models.Book.query.all();
 		for book in books:
@@ -53,8 +53,8 @@ def create_app(test_config=None):
 
 		return flask.render_template("index.html");
 
-	@app.route("/json", methods=["GET"])
-	def fetch():
+	@app.route("/books", methods=["GET"])
+	def get_book_list():
 		books = models.Book.query.all();
 		book_list = [];
 		for book in books:
@@ -67,7 +67,30 @@ def create_app(test_config=None):
 		# TODO: encoding?
 		return json.dumps(book_list, ensure_ascii=False).encode("utf-8"), 200;
 
-	@app.route("/csv")
+	@app.route("/books/<bookId>", methods=["GET"])
+	def get_book(bookId):
+		#TODO: handle id not found error
+		bookQuery = models.Book.query.filter_by(id=bookId).one();
+		book = {
+			"id" : bookQuery.id,
+			"title" : bookQuery.title,
+			"author" : bookQuery.author
+		}
+		return json.dumps(book, ensure_ascii=False).encode("utf-8"), 200;
+
+	@app.route("/books/<bookId>", methods=["DELETE"])
+	def delete_book(bookId):
+		# delete book from database
+		query = models.Book.query.filter_by(id=bookId).delete();
+		db.session.commit();
+
+		# send response
+		response = {
+			"message" : f"deleted book (id={bookId})"
+		}
+		return json.dumps(response, ensure_ascii=False).encode("utf-8"), 200;
+
+	@app.route("/books/csv")
 	def get_csv():
 		# stream db contents to csv
 		# (https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/)
@@ -84,8 +107,8 @@ def create_app(test_config=None):
 		response.headers["Content-Disposition"] = "attachment; filename=result.csv";
 		return response;
 
-	@app.route("/add", methods=["POST"])
-	def add():
+	@app.route("/books", methods=["POST"])
+	def add_book():
 		# parse request json
 		data = request.get_json();
 		bookTitle = data.get("title");
