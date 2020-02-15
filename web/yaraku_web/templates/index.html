@@ -39,13 +39,11 @@
 <!-- Book Listing -->
 <table id="bookTable" class="table">
 	<thead><tr>
+		<th></th>
 		<th>Title</th>
 		<th>Author</th>
 	</tr></thead>
 	<tbody id="bookTableBody">
-		{% for book in book_list %}
-		<tr><td>{{book.title}}</td><td>{{book.author}}</td></tr>
-		{% endfor %}
 	</tbody>
 </table>
 {% endblock %}

@@ -51,7 +51,7 @@ def create_app(test_config=None):
 				"author" : book.author
 			});
 
-		return flask.render_template("index.html", book_list=book_list);
+		return flask.render_template("index.html");
 
 	@app.route("/json", methods=["GET"])
 	def fetch():
