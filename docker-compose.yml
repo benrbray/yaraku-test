@@ -1,0 +1,16 @@
+version: "3"
+services:
+
+  web:
+    build: ./web
+    image: benrbray/yaraku-web
+    environment:
+      - PYTHONUNBUFFERED=1   # necessary to see python stdout in logs
+    #command: gunicorn -w 4 -b 0.0.0.0:5000 app:app
+    ports:
+      - 5000:5000
+    volumes:
+      - data_volume:/opt/yaraku/data
+
+volumes:
+  data_volume:
