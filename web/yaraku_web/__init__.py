@@ -40,7 +40,7 @@ def create_app(test_config=None):
 
 	@app.route("/books/<book_id>", methods=["GET"])
 	def get_book(book_id):
-		book_data = models.get_book(bookId);
+		book_data = models.get_book(book_id);
 
 		# handle missing book
 		if not book_data:
