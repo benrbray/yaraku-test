@@ -1,9 +1,8 @@
 import flask;
-import flask_sqlalchemy;
 from flask import Flask, escape, abort, jsonify, request;
 
 from . import models;
-from .models import db;
+from .models import redis;
 import json;
 
 from werkzeug.exceptions import HTTPException;
@@ -13,11 +12,6 @@ import os;
 def create_app(test_config=None):
 	# create and configure app
 	app = Flask(__name__);
-	#TODO: secret key should be random (set in config.py)
-	app.config.from_mapping(
-		SECRET_KEY="dev",
-		DATABASE=os.path.join(app.instance_path, 'yaraku_web.sqlite')
-	)
 
 	# load instance config, if it exists, when not testing,
 	# otherwise use test_config
@@ -30,63 +24,41 @@ def create_app(test_config=None):
 	app.app_context().push();
 
 	# initialize database
-	db.init_app(app);
-	db.create_all();
+	#TODO: init_app?  use flask-redis?
+	models.init_redis();
 
 	@app.route("/", methods=["GET"])
 	def index():
-		book_list = [];
-		books = models.Book.query.all();
-		for book in books:
-			book_list.append({
-				"id" : book.id,
-				"title" : book.title,
-				"author" : book.author
-			});
-
 		return flask.render_template("index.html");
 
 	@app.route("/books", methods=["GET"])
 	def get_book_list():
-		books = models.Book.query.all();
-		book_list = [];
-		for book in books:
-			book_list.append({
-				"id" : book.id,
-				"title" : book.title,
-				"author" : book.author
-			});
+		book_list = models.get_all_books();
 
 		# TODO: encoding?
 		return json.dumps(book_list, ensure_ascii=False).encode("utf-8"), 200;
 
-	@app.route("/books/<bookId>", methods=["GET"])
-	def get_book(bookId):
-		# query
-		bookQuery = models.Book.query.filter_by(id=bookId).first();
+	@app.route("/books/<book_id>", methods=["GET"])
+	def get_book(book_id):
+		book_data = models.get_book(bookId);
 
-		# handle book not found
-		if bookQuery is None:
-			abort(f"no book found with id={bookId}", 404);
+		# handle missing book
+		if not book_data:
+			abort(f"no book found with id={book_id}", 404);
 
-		book = {
-			"id" : bookQuery.id,
-			"title" : bookQuery.title,
-			"author" : bookQuery.author
-		}
-		return json.dumps(book, ensure_ascii=False).encode("utf-8"), 200;
+		# respond with book data
+		book_data["id"] = book_id;
+		return json.dumps(book_data, ensure_ascii=False).encode("utf-8"), 200;
 
-	@app.route("/books/<bookId>", methods=["DELETE"])
-	def delete_book(bookId):
-		# delete book from database
-		query = models.Book.query.filter_by(id=bookId).delete();
-		db.session.commit();
-
-		# send response
-		response = {
-			"message" : f"deleted book (id={bookId})"
-		}
-		return json.dumps(response, ensure_ascii=False).encode("utf-8"), 200;
+	@app.route("/books/<book_id>", methods=["DELETE"])
+	def delete_book(book_id):
+		# attempt to delete book
+		success = models.delete_book(book_id);
+		# handle failure
+		if not success:
+			abort(f"failed to delete book with id={book_id}", 500);
+		# handle success
+		return f"deleted book with id={book_id}", 200;
 
 	@app.route("/books/csv")
 	def get_csv():
@@ -94,9 +66,9 @@ def create_app(test_config=None):
 		# (https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/)
 		@flask.stream_with_context
 		def generate():
-			books = models.Book.query.all();
-			for book in books:
-				book_data = [ book.title, book.author ];
+			book_list = models.get_all_books();
+			for book in book_list:
+				book_data = [ book["title"], book["author"] ];
 				yield ','.join(book_data) + "\n";
 		
 		# create http response
@@ -104,6 +76,11 @@ def create_app(test_config=None):
 		response.headers["Content-Type"] = "text/csv; charset=utf-8";
 		response.headers["Content-Disposition"] = "attachment; filename=result.csv";
 		return response;
+
+	@app.route("/books/xml")
+	def get_xml():
+		#TODO: generate XML (perhaps via ACCEPT http header?)
+		return "TODO:  Generate XML"
 
 	@app.route("/books", methods=["POST"])
 	def add_book():
@@ -120,9 +97,7 @@ def create_app(test_config=None):
 
 		# add to database
 		# TODO: handle duplicate books?
-		book = models.Book(title=bookTitle, author=bookAuthor);
-		db.session.add(book);
-		db.session.commit();
+		models.add_book(bookTitle, bookAuthor);
 		return json.dumps("added book"), 200
 
 	#### ERRORS #########################################################

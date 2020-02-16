@@ -1,9 +1,8 @@
 import flask;
-import flask_sqlalchemy;
 from flask import Flask, escape, abort, jsonify, request;
 
 from . import models;
-from .models import db;
+from .models import redis;
 import json;
 
 from werkzeug.exceptions import HTTPException;
@@ -30,8 +29,9 @@ def create_app(test_config=None):
 	app.app_context().push();
 
 	# initialize database
-	db.init_app(app);
-	db.create_all();
+	#dbdb.init_app(app);
+	#db.create_all();
+	models.init_redis();
 
 	@app.route("/", methods=["GET"])
 	def index():
