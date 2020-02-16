@@ -25,13 +25,6 @@ def create_app(test_config=None):
 		app.config.from_pyfile("config.py", silent=True);
 	else:
 		app.config.from_mapping(test_config);
-
-	# ensure instance folder exists
-	#TODO: remove?
-	try:
-		os.makedirs(app.instance_path);
-	except OSError:
-		pass;
 	
 	# app context
 	app.app_context().push();
@@ -69,8 +62,13 @@ def create_app(test_config=None):
 
 	@app.route("/books/<bookId>", methods=["GET"])
 	def get_book(bookId):
-		#TODO: handle id not found error
-		bookQuery = models.Book.query.filter_by(id=bookId).one();
+		# query
+		bookQuery = models.Book.query.filter_by(id=bookId).first();
+
+		# handle book not found
+		if bookQuery is None:
+			abort(f"no book found with id={bookId}", 404);
+
 		book = {
 			"id" : bookQuery.id,
 			"title" : bookQuery.title,
