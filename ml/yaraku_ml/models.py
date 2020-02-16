@@ -1,4 +1,6 @@
 from redis import Redis;
+from . import services;
+import collections;
 
 redis = Redis(host='redis', port=6379, decode_responses=True)
 
@@ -6,6 +8,76 @@ def init_redis():
 	pass;
 
 #### DATABASE ACCESS ###########################################################
+
+## Word Index ------------------------------------------------------------------
+
+def rec_add_title(book_title, book_id):
+	# split title into words
+	words = services.tokenize_title(book_title);
+
+	# for each word in title, store book_id in word lookup table
+	pipe = redis.pipeline();
+	for word in words:
+		word_key = f"word:{word}";
+		pipe.sadd(word_key, book_id);
+	
+	pipe.execute();
+
+	# success
+	return True;
+
+def rec_delete_title(book_title, book_id):
+	# split title into words
+	words = services.tokenize_title(book_title);
+
+	# for each word in title, remove book_id from word lookup table
+	pipe = redis.pipeline();
+	for word in words:
+		word_key = f"word:{word}";
+		pipe.srem(word_key, book_id);
+	
+	pipe.execute();
+
+	# success
+	return True;
+
+
+def rec_recommend(book, num_recommend=5):
+	# split title into words
+	words = services.tokenize_title(book["title"]);
+
+	# find all books with at least one word in common
+	pipe = redis.pipeline();
+	for word in words:
+		word_key = f"word:{word}";
+		pipe.smembers(word_key);
+
+	# exclude empty query results
+	common_counts = collections.Counter();
+	for s in pipe.execute():
+		if s and len(s) > 0:
+			common_counts.update(s);
+	
+	# no recommendations?
+	if len(common_counts) == 0:
+		return [];
+	
+	# retrieve title/author for recommended books
+	pipe = redis.pipeline();
+	similar_ids = common_counts.most_common(num_recommend);
+	for book_id,_ in similar_ids:
+		book_key = f"book:{book_id}";
+		pipe.hgetall(book_key);
+	
+	similar_books = pipe.execute();
+
+	# include book_id with each recommendation
+	for idx, (book_id, freq) in enumerate(similar_ids):
+		similar_book = similar_books[idx];
+		if similar_book:
+			similar_book["id"] = book_id;
+	
+	return [sb for sb in similar_books if sb];
 
 ## Books API -------------------------------------------------------------------
 
@@ -47,7 +119,7 @@ def add_book(title, author):
 	redis.hset(book_key, "title", title);
 	redis.hset(book_key, "author", author);
 	# success
-	return True;
+	return book_id;
 
 def delete_book(id):
 	# delete book object

@@ -46,8 +46,8 @@ def add_book(title, author):
 	book_key = f"book:{book_id}";
 	redis.hset(book_key, "title", title);
 	redis.hset(book_key, "author", author);
-	# success
-	return True;
+	# success: return new book_id
+	return book_id;
 
 def delete_book(id):
 	# delete book object

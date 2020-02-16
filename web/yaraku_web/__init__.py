@@ -1,5 +1,6 @@
 import flask;
 from flask import Flask, escape, abort, jsonify, request;
+import requests;
 
 from . import models;
 from .models import redis;
@@ -97,12 +98,20 @@ def create_app(test_config=None):
 
 		# add to database
 		# TODO: handle duplicate books?
-		models.add_book(bookTitle, bookAuthor);
+		book_id = models.add_book(bookTitle, bookAuthor);
+
+		# send book to ml service
+		req = requests.post('http://ml:5000/addbook', json={
+			"id" : book_id,
+			"title" : bookTitle,
+			"author" : bookAuthor
+		});
+
 		return json.dumps("added book"), 200
 
 	#### ERRORS #########################################################
 
-	@app.errorhandler(Exception)
+	#@app.errorhandler(Exception)
 	def json_error(error):
 		# preserve status code on HTTP errors
 		code = 500;
