@@ -29,8 +29,11 @@ services:
 
   redis:
     image: redis
+    volumes:
+      - redis:/data
     ports: 
       - 6379:6379
 
 volumes:
   data_volume:
+  redis:
