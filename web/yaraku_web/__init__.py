@@ -98,13 +98,14 @@ def create_app(test_config=None):
 
 	@app.route("/books/<book_id>", methods=["GET"])
 	def get_book(book_id):
+		# search for book_id in database
 		book_data = models.get_book(book_id);
 
-		# handle missing book
+		# if book not found, reply with 404
 		if not book_data:
 			abort(f"no book found with id={book_id}", 404);
 
-		# respond with book data
+		# otherwise, reply with book json
 		book_data["id"] = book_id;
 		return json.dumps(book_data, ensure_ascii=False).encode("utf-8"), 200;
 
