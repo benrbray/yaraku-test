@@ -153,7 +153,7 @@ def create_app(test_config=None):
 
 	#### ERRORS #########################################################
 
-	#@app.errorhandler(Exception)
+	@app.errorhandler(Exception)
 	def json_error(error):
 		# preserve status code on HTTP errors
 		code = 500;
