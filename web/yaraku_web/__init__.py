@@ -16,6 +16,11 @@ import os;
 from . import models;
 from .models import redis;
 
+#### HELPER FUNCTIONS ##########################################################
+
+def json_utf8(obj):
+	return json.dumps(obj, ensure_ascii=False).encode("utf-8");
+
 ################################################################################
 
 # application factory
@@ -51,7 +56,7 @@ def create_app(test_config=None):
 		book_list = models.get_all_books();
 
 		# create http response
-		response = flask.Response(json.dumps(book_list, ensure_ascii=False).encode("utf-8"));
+		response = flask.Response(json_utf8(book_list));
 		response.headers["Content-Type"] = "application/json; charset=utf-8";
 		return response;
 
@@ -107,7 +112,7 @@ def create_app(test_config=None):
 
 		# otherwise, reply with book json
 		book_data["id"] = book_id;
-		return json.dumps(book_data, ensure_ascii=False).encode("utf-8"), 200;
+		return json_utf8(book_data), 200;
 
 	@app.route("/books/<book_id>", methods=["DELETE"])
 	def delete_book(book_id):
@@ -144,9 +149,9 @@ def create_app(test_config=None):
 		});
 
 		# reply with book_id for newly created book
-		response = flask.Response(json.dumps({
+		response = flask.Response(json_utf8({
 			"id" : book_id
-		}, ensure_ascii=False).encode("utf-8"));
+		}));
 		response.headers["Content-Type"] = "application/json; charset=utf-8";
 		response.headers["Content-Disposition"] = "attachment; filename=result.xml";
 		return response;
