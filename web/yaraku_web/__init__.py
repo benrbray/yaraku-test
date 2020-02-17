@@ -90,8 +90,6 @@ def create_app(test_config=None):
 		#tree = XML.ElementTree(root);
 		xml_str = XML.tostring(root, encoding="utf8");
 
-		print(xml_str);
-
 		# create http response
 		response = flask.Response(xml_str);
 		response.headers["Content-Type"] = "text/xml; charset=utf-8";

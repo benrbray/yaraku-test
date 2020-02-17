@@ -33,6 +33,16 @@ services:
       - redis:/data
     ports: 
       - 6379:6379
+  
+  tests:
+    build: ./tests
+    image: benrbray/yaraku-tests
+    # keep container running for testing purposes
+    command: tail -f /dev/null
+    depends_on:
+      - redis
+      - web
+      - ml
 
 volumes:
   data_volume:
