@@ -44,7 +44,10 @@ function makeBookTableRow(book){
 	row.appendChild(td_delete);
 	
 	let td_title = document.createElement("td");
-	td_title.innerText = book.title;
+	let a_title = document.createElement("a");
+	a_title.innerText = book.title;
+	a_title.setAttribute("href", "/web/books/" + book.id);
+	td_title.appendChild(a_title);
 	row.appendChild(td_title);
 
 	let td_author = document.createElement("td");

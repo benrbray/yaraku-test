@@ -49,8 +49,20 @@ def create_app(test_config=None):
 	## Web Interface -----------------------------------------------------------
 
 	@app.route("/", methods=["GET"])
+	@app.route("/web", methods=["GET"])
 	def index():
 		return flask.render_template("index.html");
+
+	@app.route("/web/books/<book_id>", methods=["GET"])
+	def web_book(book_id):
+		# get book data
+		book_data = models.get_book(book_id);
+		book_data["id"] = book_id;
+		# if book not found, reply with 404
+		if not book_data:
+			abort(404, f"no book found with id={book_id}");
+		# otherwise, show page with book info
+		return flask.render_template("book.html", book_data=book_data);
 
 	## API ---------------------------------------------------------------------
 
