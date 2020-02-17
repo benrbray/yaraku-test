@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+<!-- ============================================================= -->
+
+{% block head %}
+<!-- JavaScript -->
+<script>
+const BOOK_ID = "{{ book_data.id }}";
+function handleDeleteBook(bookId){
+	// build request
+	let request = new XMLHttpRequest();
+	request.open("DELETE", "/books/" + bookId, true);
+	request.setRequestHeader("Content-Type", "application/json");
+
+	request.onload = function(){
+		refreshBookList();
+	}
+
+	request.onerror = function(){
+		// TODO: handle delete error
+	}
+
+	request.send();
+	window.location = "/";
+}
+</script>
+<!-- Page Info -->
+<title>Yaraku Books</title>
+{% endblock %}
+
+<!-- ============================================================= -->
+
+{% block content %}
+<h3>Book Detail</h3>
+
+<dl>
+	<dt>Title</dt><dd>{{ book_data.title }}</dd>
+	<dt>Author</dt><dd>{{ book_data.author }}</dd>
+</dl>
+
+<button onclick="handleDeleteBook(BOOK_ID)" type="button" class="btn btn-danger">Delete Book</button>
+
+<hr>
+
+<h3>Similar Books</h3>
+
+Coming Soon!
+{% endblock %}
