@@ -18,8 +18,12 @@ from .models import redis;
 
 #### HELPER FUNCTIONS ##########################################################
 
-def json_utf8(obj):
-	return json.dumps(obj, ensure_ascii=False).encode("utf-8");
+def json_response(data):
+	# create http response
+	json_str = json.dumps(data, ensure_ascii=False).encode("utf-8");
+	response = flask.Response(json_str);
+	response.headers["Content-Type"] = "application/json; charset=utf-8";
+	return response;
 
 ################################################################################
 
@@ -54,11 +58,7 @@ def create_app(test_config=None):
 	@accept_fallback
 	def get_book_list():
 		book_list = models.get_all_books();
-
-		# create http response
-		response = flask.Response(json_utf8(book_list));
-		response.headers["Content-Type"] = "application/json; charset=utf-8";
-		return response;
+		return json_response(book_list);
 
 	@app.route("/books/csv")
 	@get_book_list.support("text/csv")
@@ -112,7 +112,7 @@ def create_app(test_config=None):
 
 		# otherwise, reply with book json
 		book_data["id"] = book_id;
-		return json_utf8(book_data), 200;
+		return json_response(book_data);
 
 	@app.route("/books/<book_id>", methods=["DELETE"])
 	def delete_book(book_id):
@@ -149,10 +149,9 @@ def create_app(test_config=None):
 		});
 
 		# reply with book_id for newly created book
-		response = flask.Response(json_utf8({
+		response = json_response({
 			"id" : book_id
-		}));
-		response.headers["Content-Type"] = "application/json; charset=utf-8";
+		});
 		response.headers["Content-Disposition"] = "attachment; filename=result.xml";
 		return response;
 
