@@ -1,29 +1,15 @@
 import pytest;
 import requests;
 from urllib.parse import urljoin;
-import json;
+import json, csv, os;
 import redis;
-import csv;
 import api_helpers as api;
+import random;
 
 # http codes
 HTTP_OK = 200;
 HTTP_ACCEPTED = 202;
 HTTP_NOT_FOUND = 404;
-
-#### TEST FIXTURES (defined in conftest.py) ####################################
-
-## Test Fixtures ---------------------------------------------------------------
-
-def test_redis_conn(redis_conn):
-	db = redis_conn;
-	num_keys = db.dbsize();
-	assert(num_keys >= 0);
-
-def test_redis_flush(redis_flush):
-	db = redis_flush;
-	num_keys = db.dbsize();
-	assert(num_keys == 0);
 
 #### TEST API ##################################################################
 
@@ -93,6 +79,53 @@ def test_delete_book_2(redis_flush):
 	# attempt to delete book that doesn't exist
 	response = api.request_delete_book("9999");
 	assert(response.status_code == HTTP_NOT_FOUND);
+
+def test_crud(redis_flush):
+	# read book list from disk
+	books_csv = [];
+	with open(os.path.join("data","books.csv")) as csvfile:
+		for row in csv.reader(csvfile):
+			books_csv.append({
+				"title": row[0],
+				"author": row[1]
+			});
+	num_books = len(books_csv);
+	assert(num_books == 60);
+	
+	# use web api to upload all books individually,
+	# keeping track of their reported ids
+	for book in books_csv:
+		response = api.request_add_book(book["title"], book["author"]);
+		assert(response.status_code == HTTP_OK);
+		data = response.json();
+		assert("id" in data);
+		book["id"] = data["id"];
+	
+	# randomly delete a large number of books
+	delete_count = random.randrange(num_books // 4, num_books // 2);
+	delete_idxs = random.sample(range(num_books), delete_count);
+	delete_ids  = { books_csv[idx]["id"] for idx in delete_idxs };
+
+	for delete_id in delete_ids:
+		response = api.request_delete_book(delete_id);
+		assert(response.status_code == HTTP_OK);
+
+	# check that deleted books are actually gone,
+	# and that the other books are still there
+	for book in books_csv:
+		book_id = book["id"];
+		response = api.request_get_book(book_id);
+
+		if book_id in delete_ids:
+			assert(response.status_code == HTTP_NOT_FOUND);
+		else:
+			assert(response.status_code == HTTP_OK);
+			data = response.json();
+			assert("author" in data);
+			assert("title" in data);
+			assert(data["author"] == book["author"]);
+			assert(data["title"] == book["title"]);
+			assert(data["id"] == book_id);
 
 ## Export Book List ------------------------------------------------------------
 
