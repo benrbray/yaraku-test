@@ -36,7 +36,7 @@ def upload_books_csv(file_path):
 	# read book list from disk
 	books_csv = [];
 	with open(os.path.join("data","books.csv")) as csvfile:
-		for row in csv.reader(csvfile):
+		for row in csv.reader(csvfile, skipinitialspace=True):
 			books_csv.append({
 				"title": row[0],
 				"author": row[1]
