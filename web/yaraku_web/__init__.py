@@ -108,7 +108,7 @@ def create_app(test_config=None):
 
 		# if book not found, reply with 404
 		if not book_data:
-			abort(f"no book found with id={book_id}", 404);
+			abort(404, f"no book found with id={book_id}");
 
 		# otherwise, reply with book json
 		book_data["id"] = book_id;
@@ -117,10 +117,10 @@ def create_app(test_config=None):
 	@app.route("/books/<book_id>", methods=["DELETE"])
 	def delete_book(book_id):
 		# attempt to delete book
-		success = models.delete_book(book_id);
+		delete_count = models.delete_book(book_id);
 		# handle failure
-		if not success:
-			abort(f"failed to delete book with id={book_id}", 500);
+		if delete_count < 1:
+			abort(404, f"failed to delete; no book exists with id={book_id}");
 		# handle success
 		return f"deleted book with id={book_id}", 200;
 

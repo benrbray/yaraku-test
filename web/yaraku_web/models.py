@@ -40,7 +40,7 @@ def get_all_books():
 def add_book(title, author):
 	# TODO: error handling for redis add_book?
 	# generate new book id
-	book_id = redis.incr("next_book_id", 1);
+	book_id = str(redis.incr("next_book_id", 1));
 	redis.zadd("book_ids", { book_id : book_id });
 	# set book data
 	book_key = f"book:{book_id}";
@@ -52,8 +52,15 @@ def add_book(title, author):
 def delete_book(id):
 	# delete book object
 	book_key = f"book:{id}";
-	redis.delete(book_key);
+	delete_count = redis.delete(book_key);
 	# delete id
-	redis.zrem("book_ids", id);
+	zrem_count = redis.zrem("book_ids", id);
+
+	# deletion may expose database integrity issues
+	if delete_count < zrem_count:
+		raise Exception(f"while deleting {book_key}, noticed dangling book object");
+	if delete_count > zrem_count:
+		raise Exception(f"while deleting {book_key}, noticed missing book object");
+	
 	# success
-	return True;
+	return delete_count;

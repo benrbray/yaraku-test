@@ -11,6 +11,7 @@ ML_URL  = "http://ml:5001";
 
 HTTP_OK = 200;
 HTTP_ACCEPTED = 202;
+HTTP_NOT_FOUND = 404;
 
 #### TEST FIXTURES #############################################################
 
@@ -61,6 +62,10 @@ def request_get_book(book_id):
 	url = urljoin(WEB_URL, f"books/{book_id}");
 	return requests.request("GET", url);
 
+def request_delete_book(book_id):
+	url = urljoin(WEB_URL, f"books/{book_id}");
+	return requests.request("DELETE", url);
+
 #### TEST API ##################################################################
 
 def test_api_1(redis_flush):
@@ -72,9 +77,7 @@ def test_api_1(redis_flush):
 
 ## Add / Remove Books ----------------------------------------------------------
 
-def test_add_book_1():
-	db = redis_flush;
-
+def test_add_book_1(redis_flush):
 	# validate response
 	response = request_add_book("Crime and Punishment", "Fyodor Dostoyevsky");
 	assert(response.status_code == HTTP_OK);	
@@ -82,10 +85,7 @@ def test_add_book_1():
 	data = response.json();
 	assert("id" in data);
 
-
-def test_add_book_2():
-	db = redis_flush;
-
+def test_add_book_2(redis_flush):
 	# validate response
 	title = "Fyodor Dostoyevsky";
 	author = "Crime and Punishment";
@@ -102,8 +102,38 @@ def test_add_book_2():
 	book_info = response.json();
 	assert("title" in book_info);
 	assert("author" in book_info);
+	assert("id" in book_info);
 	assert(book_info["title"] == title);
 	assert(book_info["author"] == author);
+	assert(book_info["id"] == data["id"]);
+
+def test_delete_book_1(redis_flush):
+	# attempt to add book
+	title = "Fyodor Dostoyevsky";
+	author = "Crime and Punishment";
+	response = request_add_book(title, author);
+	assert(response.status_code == HTTP_OK);
+
+	# expect "id" field after adding book
+	data = response.json();
+	assert("id" in data);
+
+	# request book information
+	response = request_get_book(data["id"]);
+	assert(response.status_code == HTTP_OK);
+
+	# attempt to delete book
+	response = request_delete_book(data["id"]);
+	assert(response.status_code == HTTP_OK);
+
+	response = request_get_book(data["id"]);
+	assert(response.status_code == HTTP_NOT_FOUND);
+
+
+def test_delete_book_2(redis_flush):
+	# attempt to delete book that doesn't exist
+	response = request_delete_book("9999");
+	assert(response.status_code == HTTP_NOT_FOUND);
 
 
 ## Export Book List ------------------------------------------------------------
@@ -163,4 +193,3 @@ def test_export_xml_2(redis_flush):
 	response = requests.request("GET", url)
 	assert(response.status_code == HTTP_OK);
 	assert(response.headers.get('content-type') == "text/xml; charset=utf-8");
-
