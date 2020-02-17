@@ -1,5 +1,6 @@
 import requests;
 from urllib.parse import urljoin;
+import os, csv;
 
 # urls
 WEB_URL = "http://web:5000";
@@ -28,3 +29,28 @@ def request_get_book(book_id):
 def request_delete_book(book_id):
 	url = urljoin(WEB_URL, f"books/{book_id}");
 	return requests.request("DELETE", url);
+
+#### TESTING WITH MANY BOOKS ###################################################
+
+def upload_books_csv(file_path):
+	# read book list from disk
+	books_csv = [];
+	with open(os.path.join("data","books.csv")) as csvfile:
+		for row in csv.reader(csvfile):
+			books_csv.append({
+				"title": row[0],
+				"author": row[1]
+			});
+	num_books = len(books_csv);
+	assert(num_books == 60);
+	
+	# use web api to upload all books individually,
+	# keeping track of their reported ids
+	for book in books_csv:
+		response = request_add_book(book["title"], book["author"]);
+		assert(response.status_code == HTTP_OK);
+		data = response.json();
+		assert("id" in data);
+		book["id"] = data["id"];
+
+	return books_csv;

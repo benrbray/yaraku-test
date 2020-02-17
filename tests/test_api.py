@@ -81,25 +81,9 @@ def test_delete_book_2(redis_flush):
 	assert(response.status_code == HTTP_NOT_FOUND);
 
 def test_crud(redis_flush):
-	# read book list from disk
-	books_csv = [];
-	with open(os.path.join("data","books.csv")) as csvfile:
-		for row in csv.reader(csvfile):
-			books_csv.append({
-				"title": row[0],
-				"author": row[1]
-			});
+	# upload book list using web api, keeping track of generated ids
+	books_csv = api.upload_books_csv("data/books.csv");
 	num_books = len(books_csv);
-	assert(num_books == 60);
-	
-	# use web api to upload all books individually,
-	# keeping track of their reported ids
-	for book in books_csv:
-		response = api.request_add_book(book["title"], book["author"]);
-		assert(response.status_code == HTTP_OK);
-		data = response.json();
-		assert("id" in data);
-		book["id"] = data["id"];
 	
 	# randomly delete a large number of books
 	delete_count = random.randrange(num_books // 4, num_books // 2);
