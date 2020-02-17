@@ -53,6 +53,7 @@ def create_app(test_config=None):
 		# TODO: encoding?
 		return json.dumps(book_list, ensure_ascii=False).encode("utf-8"), 200;
 
+	@app.route("/books/csv")
 	@get_book_list.support("text/csv")
 	def get_books_csv():
 		# stream db contents to csv
@@ -71,6 +72,7 @@ def create_app(test_config=None):
 		response.headers["Content-Disposition"] = "attachment; filename=result.csv";
 		return response;
 
+	@app.route("/books/xml")
 	@get_book_list.support("text/xml")
 	def get_books_xml():
 		# get book list
