@@ -1,13 +1,22 @@
+# flask
 import flask;
 from flask import Flask, escape, abort, jsonify, request;
+from flask_accept import accept, accept_fallback;
+from werkzeug.exceptions import HTTPException;
+
+# networking
 import requests;
 
+# system and file types
+from xml.etree import ElementTree as XML;
+import json;
+import os;
+
+# yaraku app source
 from . import models;
 from .models import redis;
-import json;
 
-from werkzeug.exceptions import HTTPException;
-import os;
+################################################################################
 
 # application factory
 def create_app(test_config=None):
@@ -28,16 +37,62 @@ def create_app(test_config=None):
 	#TODO: init_app?  use flask-redis?
 	models.init_redis();
 
+	## Web Interface -----------------------------------------------------------
+
 	@app.route("/", methods=["GET"])
 	def index():
 		return flask.render_template("index.html");
 
+	## API ---------------------------------------------------------------------
+
 	@app.route("/books", methods=["GET"])
+	@accept_fallback
 	def get_book_list():
 		book_list = models.get_all_books();
 
 		# TODO: encoding?
 		return json.dumps(book_list, ensure_ascii=False).encode("utf-8"), 200;
+
+	@get_book_list.support("text/csv")
+	def get_books_csv():
+		# stream db contents to csv
+		# (https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/)
+		@flask.stream_with_context
+		def generate():
+			#TODO: improve streaming with pagination
+			book_list = models.get_all_books();
+			for book in book_list:
+				book_data = [ book["title"], book["author"] ];
+				yield ','.join(book_data) + "\n";
+		
+		# create http response
+		response = flask.Response(generate());
+		response.headers["Content-Type"] = "text/csv; charset=utf-8";
+		response.headers["Content-Disposition"] = "attachment; filename=result.csv";
+		return response;
+
+	@get_book_list.support("text/xml")
+	def get_books_xml():
+		# get book list
+		book_list = models.get_all_books();
+
+		# generate xml
+		root = XML.Element("root");
+		for book in book_list:
+			book_elt = XML.SubElement(root, "book", id=book["id"]);
+			XML.SubElement(book_elt, "title").text  = book["title"];
+			XML.SubElement(book_elt, "author").text = book["author"];
+		
+		#tree = XML.ElementTree(root);
+		xml_str = XML.tostring(root, encoding="utf8");
+
+		print(xml_str);
+
+		# create http response
+		response = flask.Response(xml_str);
+		response.headers["Content-Type"] = "text/xml; charset=utf-8";
+		response.headers["Content-Disposition"] = "attachment; filename=result.xml";
+		return response;
 
 	@app.route("/books/<book_id>", methods=["GET"])
 	def get_book(book_id):
@@ -60,28 +115,6 @@ def create_app(test_config=None):
 			abort(f"failed to delete book with id={book_id}", 500);
 		# handle success
 		return f"deleted book with id={book_id}", 200;
-
-	@app.route("/books/csv")
-	def get_csv():
-		# stream db contents to csv
-		# (https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/)
-		@flask.stream_with_context
-		def generate():
-			book_list = models.get_all_books();
-			for book in book_list:
-				book_data = [ book["title"], book["author"] ];
-				yield ','.join(book_data) + "\n";
-		
-		# create http response
-		response = flask.Response(generate());
-		response.headers["Content-Type"] = "text/csv; charset=utf-8";
-		response.headers["Content-Disposition"] = "attachment; filename=result.csv";
-		return response;
-
-	@app.route("/books/xml")
-	def get_xml():
-		#TODO: generate XML (perhaps via ACCEPT http header?)
-		return "TODO:  Generate XML"
 
 	@app.route("/books", methods=["POST"])
 	def add_book():
