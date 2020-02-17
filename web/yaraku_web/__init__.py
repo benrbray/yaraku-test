@@ -143,7 +143,13 @@ def create_app(test_config=None):
 			"author" : bookAuthor
 		});
 
-		return json.dumps("added book"), 200
+		# reply with book_id for newly created book
+		response = flask.Response(json.dumps({
+			"id" : book_id
+		}, ensure_ascii=False).encode("utf-8"));
+		response.headers["Content-Type"] = "application/json; charset=utf-8";
+		response.headers["Content-Disposition"] = "attachment; filename=result.xml";
+		return response;
 
 	#### ERRORS #########################################################
 

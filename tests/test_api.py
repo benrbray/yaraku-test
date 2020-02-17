@@ -77,14 +77,33 @@ def test_add_book_1():
 
 	# validate response
 	response = request_add_book("Crime and Punishment", "Fyodor Dostoyevsky");
-	assert(response.status_code == HTTP_OK);
+	assert(response.status_code == HTTP_OK);	
+	# expect "id" field after adding book
+	data = response.json();
+	assert("id" in data);
+
 
 def test_add_book_2():
 	db = redis_flush;
 
 	# validate response
-	response = request_add_book("Crime and Punishment", "Fyodor Dostoyevsky");
+	title = "Fyodor Dostoyevsky";
+	author = "Crime and Punishment";
+	response = request_add_book(title, author);
 	assert(response.status_code == HTTP_OK);
+
+	# expect "id" field after adding book
+	data = response.json();
+	assert("id" in data);
+
+	# request book information
+	response = request_get_book(data["id"]);
+	assert(response.status_code == HTTP_OK);
+	book_info = response.json();
+	assert("title" in book_info);
+	assert("author" in book_info);
+	assert(book_info["title"] == title);
+	assert(book_info["author"] == author);
 
 
 ## Export Book List ------------------------------------------------------------
