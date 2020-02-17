@@ -2,6 +2,15 @@ h1 {
 	text-align: center;
 }
 
+.yaraku-icon {
+	display: inline-block;
+	color: white;
+	padding: 2px 4px;
+	margin-right: 0.5em;
+	background-color: #415684;
+	border-radius: 10px;
+}
+
 #booktable {
 	margin-top: 20px !important;
 }
