@@ -167,7 +167,7 @@ def create_app(test_config=None):
 		response.headers["Content-Disposition"] = "attachment; filename=result.xml";
 		return response;
 
-	#### ERRORS #########################################################
+	#### ERRORS ################################################################
 
 	@app.errorhandler(Exception)
 	def json_error(error):
