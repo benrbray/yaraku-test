@@ -50,8 +50,10 @@ def create_app(test_config=None):
 	def get_book_list():
 		book_list = models.get_all_books();
 
-		# TODO: encoding?
-		return json.dumps(book_list, ensure_ascii=False).encode("utf-8"), 200;
+		# create http response
+		response = flask.Response(json.dumps(book_list, ensure_ascii=False).encode("utf-8"));
+		response.headers["Content-Type"] = "text/json; charset=utf-8";
+		return response;
 
 	@app.route("/books/csv")
 	@get_book_list.support("text/csv")
