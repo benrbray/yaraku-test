@@ -46,6 +46,21 @@ def test_redis_flush(redis_flush):
 	num_keys = db.dbsize();
 	assert(num_keys == 0);
 
+#### API HELPERS ###############################################################
+
+def request_add_book(title, author):
+	url = urljoin(WEB_URL, "books");
+	headers = { 'Content-Type': 'application/json' }
+	payload = {
+		"title"  : title,
+		"author" : author
+	}
+	return requests.request("POST", url, headers=headers, json=payload);
+
+def request_get_book(book_id):
+	url = urljoin(WEB_URL, f"books/{book_id}");
+	return requests.request("GET", url);
+
 #### TEST API ##################################################################
 
 def test_api_1(redis_flush):
@@ -60,32 +75,15 @@ def test_api_1(redis_flush):
 def test_add_book_1():
 	db = redis_flush;
 
-	# build request
-	url = urljoin(WEB_URL, "books");
-	headers = { 'Content-Type': 'application/json' }
-	payload = {
-		"title"  : "Crime and Punishment",
-		"author" : "Fyodor Dostoyevsky"
-	}
-
 	# validate response
-	response = requests.request("POST", url, headers=headers, json=payload)
+	response = request_add_book("Crime and Punishment", "Fyodor Dostoyevsky");
 	assert(response.status_code == HTTP_OK);
 
 def test_add_book_2():
 	db = redis_flush;
 
-	# build request
-	url = urljoin(WEB_URL, "books");
-	headers = { 'Content-Type': 'application/json' }
-	payload = {
-		"title"  : "Crime and Punishment",
-		"author" : "Fyodor Dostoyevsky"
-	}
-
 	# validate response
-	response = requests.request("POST", url, headers=headers, json=payload)
-	print(response.text);
+	response = request_add_book("Crime and Punishment", "Fyodor Dostoyevsky");
 	assert(response.status_code == HTTP_OK);
 
 
