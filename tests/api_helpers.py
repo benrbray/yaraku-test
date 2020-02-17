@@ -4,7 +4,7 @@ import os, csv;
 
 # urls
 WEB_URL = "http://web:5000";
-ML_URL  = "http://ml:5001";
+ML_URL  = "http://ml:5000";
 
 # http codes
 HTTP_OK = 200;
