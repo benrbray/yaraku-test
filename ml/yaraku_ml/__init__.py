@@ -79,6 +79,20 @@ def create_app(test_config=None):
 
 		return json_response(similar_books);
 
+	#### AFTER REQUEST ##################################################
+
+	@app.after_request
+	def after_request(response):
+		# set Access-Control headers to allow cross-origin access
+		# (note: this was a quick fix to get recommendations working
+		#    from the web frontend.  This poses security concerns, and
+		#    I'm sure there's a better solution for production!)
+		# (see https://stackoverflow.com/a/42286498/1444650)
+		response.headers.add('Access-Control-Allow-Origin', '*')
+		response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+		response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+		return response
+
 
 	#### ERRORS #########################################################
 

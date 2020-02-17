@@ -4,24 +4,90 @@
 
 {% block head %}
 <!-- JavaScript -->
+<script src="{{ url_for('static', filename='main.js') }}"></script>
 <script>
 const BOOK_ID = "{{ book_data.id }}";
+const BOOK_TITLE = "{{ book_data.title }}";
+const BOOK_AUTHOR = "{{ book_data.author }}";
+
 function handleDeleteBook(bookId){
 	// build request
 	let request = new XMLHttpRequest();
 	request.open("DELETE", "/books/" + bookId, true);
 	request.setRequestHeader("Content-Type", "application/json");
 
-	request.onload = function(){
-		refreshBookList();
-	}
-
-	request.onerror = function(){
-		// TODO: handle delete error
+	request.onload = function(evt){
+		window.location = "/";
 	}
 
 	request.send();
-	window.location = "/";
+}
+
+function makeBookTableRow(book){
+	let row = document.createElement("tr");
+
+	// delete button
+	let btn_delete = document.createElement("button");
+	btn_delete.innerText = "X";
+	btn_delete.className = "btn btn-outline-danger btn-sm"
+	btn_delete.setAttribute("type", "button");
+	btn_delete.onclick = () => { handleDeleteBook(book.id) };
+	
+	// row data
+	let td_delete = document.createElement("td");
+	td_delete.appendChild(btn_delete);
+	row.appendChild(td_delete);
+	
+	let td_title = document.createElement("td");
+	let a_title = document.createElement("a");
+	a_title.innerText = book.title;
+	a_title.setAttribute("href", "/web/books/" + book.id);
+	td_title.appendChild(a_title);
+	row.appendChild(td_title);
+
+	let td_author = document.createElement("td");
+	td_author.innerText = book.author;
+	row.appendChild(td_author);
+
+	return row;
+}
+
+function displayBookList(bookList, tableBodyElt){
+	// clear previous table
+	// TODO:  re-use old table rows
+	while(tableBodyElt.firstChild){
+		tableBodyElt.removeChild(tableBodyElt.firstChild);
+	}
+
+	console.log(bookList);
+
+	// create new table rows
+	bookList.forEach(book => {
+		tableBodyElt.appendChild(makeBookTableRow(book))
+	});	
+}
+
+window.onload = function(){
+	// request similar books from ml endpoint
+	let request = new XMLHttpRequest();
+	request.open("POST", "http://localhost:5001/recommend", true);
+	request.setRequestHeader("Content-Type", "application/json");
+	
+	request.onload = function(evt){
+		let recTableBody = document.getElementById("recTableBody");
+		displayBookList(JSON.parse(evt.target.response), recTableBody);
+	}
+
+	request.onerror = function(){
+		// TODO: error panel
+	}
+
+	// send request
+	request.send(JSON.stringify({
+		title  : BOOK_TITLE,
+		author : BOOK_AUTHOR,
+		count  : 10
+	}));
 }
 </script>
 <!-- Page Info -->
@@ -44,5 +110,13 @@ function handleDeleteBook(bookId){
 
 <h3>Similar Books</h3>
 
-Coming Soon!
+<table id="recTable" class="table table-sm">
+	<thead><tr>
+		<th></th>
+		<th>Title</th>
+		<th>Author</th>
+	</tr></thead>
+	<tbody id="recTableBody">
+	</tbody>
+</table>
 {% endblock %}
