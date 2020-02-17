@@ -52,7 +52,7 @@ def create_app(test_config=None):
 
 		# create http response
 		response = flask.Response(json.dumps(book_list, ensure_ascii=False).encode("utf-8"));
-		response.headers["Content-Type"] = "text/json; charset=utf-8";
+		response.headers["Content-Type"] = "application/json; charset=utf-8";
 		return response;
 
 	@app.route("/books/csv")

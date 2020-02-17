@@ -97,7 +97,7 @@ def test_export_json(redis_flush):
 	url = urljoin(WEB_URL, "books");
 	response = requests.request("GET", url)
 	assert(response.status_code == HTTP_OK);
-	assert(response.headers.get('content-type') == "text/json; charset=utf-8");
+	assert(response.headers.get('content-type') == "application/json; charset=utf-8");
 
 def test_export_csv_1(redis_flush):
 	db = redis_flush;
