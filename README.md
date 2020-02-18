@@ -1,4 +1,4 @@
-# Yaraku Books
+# Yaraku Code Test
 
 Benjamin Bray (benrbray@gmail.com)
 
@@ -6,7 +6,7 @@ Benjamin Bray (benrbray@gmail.com)
 
 ## Overview
 
-This project implements a simple web service that allows the user to upload book titles and ask for book recommendations based on the uploaded catalog of books.  This document contains a ful description of the project's functionality and a discussion of design choices made during development.
+This project implements a simple web service that allows the user to upload book titles and ask for book recommendations and groupings based on the uploaded catalog of books.
 
 ### Setup (Makefile)
 
@@ -28,8 +28,6 @@ Docker has a habit of leaving behind images and containers, so I included a `Mak
 ````
 make cleanup
 ````
-
-### 
 
 ### Setup (Manually)
 
@@ -117,8 +115,7 @@ curl --location --request POST 'localhost:5001/addbook' \
 --header 'Content-Type: application/json' \
 --data-raw '{
 	"id" : 0,
-	"title" : "This is A Title: Subtitle",
-	"author" : "Benjamin Bray"
+	"title" : "Green Eggs and Ham"
 }'
 ```
 
@@ -126,9 +123,38 @@ Acknowledges the request with `200 OK`, or responds with an error.
 
 ### Recommendations
 
+Given a title as input, the recommendation service recommends books which share at least one word in common.
+
+* Titles are ranked by the number of shared words.  
+* To compute a recommendation, the `ml` service maintains a table mapping each word seen so far to a list of titles which contain that word.
+* As a preprocessing step, titles are converted to lower case, tokenized, and stemmed using `nltk`.  This step increases the likelihood that titles will overlap (for example, "gamer" and "game" map to the same entry in the word index).
+
 #### `POST /recommend`
 
+Request book recommendations based on a book title.  Expects `application/json` data with the `title` field present.  The title does not need to exist in the database.  For example,
+
+```
+curl --location --request POST 'localhost:5001/recommend' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+	"title" : "Green Eggs and Ham"
+}'
+```
+
+Optionally, you may include a `count` field indicating the maximum number of recommendations to return.  By default, `count=5`.
+
+```
+curl --location --request POST 'localhost:5001/recommend' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+	"title" : "Green Eggs and Ham",
+	"count" : 100
+}'
+```
+
 ### Grouping
+
+The machine learning service automatically divides uploaded books into groups.  Groups are re-computed after every `N` additions to the database.  (by default, `N=5`).  Groups are computed by a background worker, using K-means on pre-trained word vectors loaded from `gensim`.  By default, there are `K=5` clusters. 
 
 #### `GET /group_ids`
 
@@ -258,3 +284,7 @@ Because `ml` and `web` are separate services working on the same data, they may 
 * Groups computed by the `ml` service may contain books that have been deleted. 
 
 At the moment, these errors won't cause the application to crash, but they are not handled very gracefully.
+
+### Machine Learning
+
+* The grouping system always uses `K=5` clusters.  Ideally, K would scale appropriately with the number of books and their similarity / dissimilarity.
