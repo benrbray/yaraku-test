@@ -101,6 +101,7 @@ def get_group_books():
 		group_books = []
 		for book_id in group:
 			book = get_book(book_id);
+			book["id"] = book_id;
 			if book is not None:
 				group_books.append(book);
 

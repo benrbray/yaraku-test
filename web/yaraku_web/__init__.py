@@ -64,6 +64,13 @@ def create_app(test_config=None):
 		# otherwise, show page with book info
 		return flask.render_template("book.html", book_data=book_data);
 
+	@app.route("/web/groups", methods=["GET"])
+	def web_groups():
+		# get group data
+		group_books = database.get_group_books();
+		# respond
+		return flask.render_template("groups.html", group_books=group_books);
+
 	## API ---------------------------------------------------------------------
 
 	@app.route("/api/books", methods=["GET"])

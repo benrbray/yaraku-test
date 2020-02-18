@@ -34,15 +34,35 @@ make cleanup
 
 ### Testing
 
-The `tests` folder contains a suite of tests intended to test the basic functionality of each container, as well as interaction between containers.  For simplicity, tests are packaged in a third docker container which is part of the same network as the application containers.  
+The `tests` folder contains a suite of tests intended to test the basic functionality of each container, as well as interaction between containers.  
 
-To run the tests, make sure the application is running and use the following command to enter a shell on the testing container: 
+* I chose the `pytest`  testing framework.
+* For simplicity, tests are packaged in a third docker container which is part of the same network as the application containers.  
+* For convenience, the testing container is set to run indefinitely when the application starts. 
+
+You may run the tests at any time by running:
+
+```
+docker exec yaraku_tests_1 pytest
+```
+
+Alternatively, you can drop into a shell and run the tests manually:
 
 ```
 docker exec -it yaraku_tests_1 bash
+>>> pytest
 ```
 
-An interactive shell will start.  Now, run the `pytest` command to begin testing.
+### Logs
+
+To view logs for individual containers:
+
+```
+docker logs yaraku_web_1
+docker logs yaraku_ml_1
+docker logs yaraku_worker_1
+docker logs yaraku_tests_1
+```
 
 ### Project Dependencies
 
@@ -93,13 +113,25 @@ Acknowledges the request with `200 OK`, or responds with an error.
 
 ### Recommendations
 
-#### `GET /recommend`
+#### `POST /recommend`
 
 ### Grouping
 
 #### `GET /group_ids`
 
+Query the ML service for groupings of books.  The `application/json` response contains a list of groups, where each group is a list of `<book_id>`s.
+
+```
+curl --location --request GET 'localhost:5001/group_ids'
+```
+
 #### `GET /group_books`
+
+Query the ML service for groupings of books.  The `application/json` response contains a list of groups, where each group is a list of book objects (with author, title, and id fields)
+
+```
+curl --location --request GET 'localhost:5001/group_books'
+```
 
 ## `web` Books API
 

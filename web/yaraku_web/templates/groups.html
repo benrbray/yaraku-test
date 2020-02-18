@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+<!-- ============================================================= -->
+
+{% block head %}
+<!-- JavaScript -->
+<script src="{{ url_for('static', filename='main.js') }}"></script>
+<!-- Page Info -->
+<title>Yaraku Books</title>
+{% endblock %}
+
+<!-- ============================================================= -->
+
+{% block content %}
+<h3>Book Groupings</h3>
+
+{% if group_books is defined and group_books|length > 0 %}
+	{% for group in group_books %}
+		<h4>Group {{loop.index0}}</h4>
+		<table class="table table-sm">
+			<thead><tr>
+				<th>Title</th>
+				<th>Author</th>
+			</tr></thead>
+			<tbody>
+				{% for book in group %}
+				<tr>
+					<td><a href="/api/books/{{book.id}}">{{book.title}}</a></td>
+					<td>{{book.author}}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	{% endfor %}
+{% else %}
+<div class="alert alert-danger" role="alert">
+No groups found!  Perhaps the ML service isn't running, or maybe groups haven't been computed yet.
+</div>
+{% endif %}
+
+{% endblock %}
