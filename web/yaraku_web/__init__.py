@@ -41,7 +41,7 @@ def create_app(test_config=None):
 	
 	# app context
 	app.app_context().push();
-
+	
 	## Web Interface -----------------------------------------------------------
 
 	@app.route("/", methods=["GET"])
@@ -67,8 +67,8 @@ def create_app(test_config=None):
 		# respond
 		return flask.render_template("groups.html", group_books=group_books);
 
-	## API ---------------------------------------------------------------------
-
+	## Export Books ------------------------------------------------------------
+	
 	@app.route("/api/books", methods=["GET"])
 	@accept_fallback
 	def get_book_list():
@@ -107,7 +107,6 @@ def create_app(test_config=None):
 			XML.SubElement(book_elt, "title").text  = book["title"];
 			XML.SubElement(book_elt, "author").text = book["author"];
 		
-		#tree = XML.ElementTree(root);
 		xml_str = XML.tostring(root, encoding="utf8");
 
 		# create http response
@@ -115,6 +114,56 @@ def create_app(test_config=None):
 		response.headers["Content-Type"] = "text/xml; charset=utf-8";
 		response.headers["Content-Disposition"] = "attachment; filename=result.xml";
 		return response;
+
+	## Export Titles -----------------------------------------------------------
+
+	@app.route("/api/titles", methods=["GET"])
+	@accept_fallback
+	def get_titles():
+		book_list = database.get_all_books();
+		title_list = [ { "title" : book["title"] } for book in book_list ];
+		return json_response(title_list);
+
+	@app.route("/api/titles/csv", methods=["GET"])
+	@get_titles.support("text/csv")
+	def get_titles_csv():
+		# stream db contents to csv
+		# (https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/)
+		@flask.stream_with_context
+		def generate():
+			#TODO: improve streaming with pagination
+			book_list = database.get_all_books();
+			for book in book_list:
+				book_data = [ book["title"] ];
+				yield ','.join(book_data) + "\n";
+		
+		# create http response
+		response = flask.Response(generate());
+		response.headers["Content-Type"] = "text/csv; charset=utf-8";
+		response.headers["Content-Disposition"] = "attachment; filename=result.csv";
+		return response;
+
+	@app.route("/api/titles/xml", methods=["GET"])
+	@get_titles.support("text/xml")
+	def get_titles_xml():
+		# get book list
+		book_list = database.get_all_books();
+
+		# generate xml
+		root = XML.Element("root");
+		for book in book_list:
+			book_elt = XML.SubElement(root, "book", id=book["id"]);
+			XML.SubElement(book_elt, "title").text  = book["title"];
+		
+		xml_str = XML.tostring(root, encoding="utf8");
+
+		# create http response
+		response = flask.Response(xml_str);
+		response.headers["Content-Type"] = "text/xml; charset=utf-8";
+		response.headers["Content-Disposition"] = "attachment; filename=result.xml";
+		return response;
+
+	## CRUD Operations ---------------------------------------------------------
 
 	@app.route("/api/books/<book_id>", methods=["GET"])
 	def get_book(book_id):
