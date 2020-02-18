@@ -168,3 +168,103 @@ def test_export_xml_2(redis_flush):
 	response = requests.request("GET", url)
 	assert(response.status_code == HTTP_OK);
 	assert(response.headers.get('content-type') == "text/xml; charset=utf-8");
+
+## Export Titles ---------------------------------------------------------------
+
+def test_export_title_csv_1(redis_flush):
+	db = redis_flush;
+
+	# build request
+	url = urljoin(api.WEB_URL, "api/titles");
+	headers = { 'Accept': 'text/csv' }
+	payload = {}
+
+	# validate response
+	response = requests.request("GET", url, headers=headers, data=payload)
+	assert(response.status_code == HTTP_OK);
+	assert(response.headers.get('content-type') == "text/csv; charset=utf-8");
+
+def test_export_title_csv_2(redis_flush):
+	db = redis_flush;
+
+	# build request
+	url = urljoin(api.WEB_URL, "api/titles/csv");
+
+	# validate response
+	response = requests.request("GET", url)
+	assert(response.status_code == HTTP_OK);
+	assert(response.headers.get('content-type') == "text/csv; charset=utf-8");
+
+def test_export_title_xml(redis_flush):
+	db = redis_flush;
+
+	# build request
+	url = urljoin(api.WEB_URL, "api/titles");
+	headers = { 'Accept': 'text/xml' }
+	payload = {}
+
+	# validate response
+	response = requests.request("GET", url, headers=headers, data=payload)
+	assert(response.status_code == HTTP_OK);
+	assert(response.headers.get('content-type') == "text/xml; charset=utf-8");
+
+def test_export_title_xml_2(redis_flush):
+	db = redis_flush;
+
+	# build request
+	url = urljoin(api.WEB_URL, "api/titles/xml");
+
+	# validate response
+	response = requests.request("GET", url)
+	assert(response.status_code == HTTP_OK);
+	assert(response.headers.get('content-type') == "text/xml; charset=utf-8");
+
+## Export Authors ---------------------------------------------------------------
+
+def test_export_author_csv_1(redis_flush):
+	db = redis_flush;
+
+	# build request
+	url = urljoin(api.WEB_URL, "api/authors");
+	headers = { 'Accept': 'text/csv' }
+	payload = {}
+
+	# validate response
+	response = requests.request("GET", url, headers=headers, data=payload)
+	assert(response.status_code == HTTP_OK);
+	assert(response.headers.get('content-type') == "text/csv; charset=utf-8");
+
+def test_export_author_csv_2(redis_flush):
+	db = redis_flush;
+
+	# build request
+	url = urljoin(api.WEB_URL, "api/authors/csv");
+
+	# validate response
+	response = requests.request("GET", url)
+	assert(response.status_code == HTTP_OK);
+	assert(response.headers.get('content-type') == "text/csv; charset=utf-8");
+
+def test_export_author_xml(redis_flush):
+	db = redis_flush;
+
+	# build request
+	url = urljoin(api.WEB_URL, "api/authors");
+	headers = { 'Accept': 'text/xml' }
+	payload = {}
+
+	# validate response
+	response = requests.request("GET", url, headers=headers, data=payload)
+	assert(response.status_code == HTTP_OK);
+	assert(response.headers.get('content-type') == "text/xml; charset=utf-8");
+
+def test_export_author_xml_2(redis_flush):
+	db = redis_flush;
+
+	# build request
+	url = urljoin(api.WEB_URL, "api/authors/xml");
+
+	# validate response
+	response = requests.request("GET", url)
+	assert(response.status_code == HTTP_OK);
+	assert(response.headers.get('content-type') == "text/xml; charset=utf-8");
