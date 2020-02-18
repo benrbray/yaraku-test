@@ -13,7 +13,7 @@ const BOOK_AUTHOR = "{{ book_data.author }}";
 function handleDeleteBook(bookId){
 	// build request
 	let request = new XMLHttpRequest();
-	request.open("DELETE", "/books/" + bookId, true);
+	request.open("DELETE", "/api/books/" + bookId, true);
 	request.setRequestHeader("Content-Type", "application/json");
 
 	request.onload = function(evt){

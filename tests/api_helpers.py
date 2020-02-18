@@ -14,7 +14,7 @@ HTTP_NOT_FOUND = 404;
 #### REQUEST FUNCTIONS #########################################################
 
 def request_add_book(title, author):
-	url = urljoin(WEB_URL, "books");
+	url = urljoin(WEB_URL, "api/books");
 	headers = { 'Content-Type': 'application/json' }
 	payload = {
 		"title"  : title,
@@ -23,11 +23,11 @@ def request_add_book(title, author):
 	return requests.request("POST", url, headers=headers, json=payload);
 
 def request_get_book(book_id):
-	url = urljoin(WEB_URL, f"books/{book_id}");
+	url = urljoin(WEB_URL, f"api/books/{book_id}");
 	return requests.request("GET", url);
 
 def request_delete_book(book_id):
-	url = urljoin(WEB_URL, f"books/{book_id}");
+	url = urljoin(WEB_URL, f"api/books/{book_id}");
 	return requests.request("DELETE", url);
 
 #### TESTING WITH MANY BOOKS ###################################################

@@ -14,7 +14,7 @@ window.onload = function(){
 function refreshBookList(){
 	// build request
 	let request = new XMLHttpRequest();
-	request.open("GET", "/books", true);
+	request.open("GET", "/api/books", true);
 
 	request.onload = function(evt){
 		displayBookList(JSON.parse(evt.target.response), bookTableBody);
@@ -32,7 +32,7 @@ function refreshBookList(){
 function handleDeleteBook(bookId){
 	// build request
 	let request = new XMLHttpRequest();
-	request.open("DELETE", "/books/" + bookId, true);
+	request.open("DELETE", "/api/books/" + bookId, true);
 	request.setRequestHeader("Content-Type", "application/json");
 
 	request.onload = function(){
@@ -51,7 +51,7 @@ function handleAddBook(event){
 
 	// build request
 	let request = new XMLHttpRequest();
-	request.open("POST", "/books", true);
+	request.open("POST", "/api/books", true);
 	request.setRequestHeader("Content-Type", "application/json");
 	
 	request.onload = function(){

@@ -66,13 +66,13 @@ def create_app(test_config=None):
 
 	## API ---------------------------------------------------------------------
 
-	@app.route("/books", methods=["GET"])
+	@app.route("/api/books", methods=["GET"])
 	@accept_fallback
 	def get_book_list():
 		book_list = database.get_all_books();
 		return json_response(book_list);
 
-	@app.route("/books/csv")
+	@app.route("/api/books/csv")
 	@get_book_list.support("text/csv")
 	def get_books_csv():
 		# stream db contents to csv
@@ -91,7 +91,7 @@ def create_app(test_config=None):
 		response.headers["Content-Disposition"] = "attachment; filename=result.csv";
 		return response;
 
-	@app.route("/books/xml")
+	@app.route("/api/books/xml")
 	@get_book_list.support("text/xml")
 	def get_books_xml():
 		# get book list
@@ -113,7 +113,7 @@ def create_app(test_config=None):
 		response.headers["Content-Disposition"] = "attachment; filename=result.xml";
 		return response;
 
-	@app.route("/books/<book_id>", methods=["GET"])
+	@app.route("/api/books/<book_id>", methods=["GET"])
 	def get_book(book_id):
 		# search for book_id in database
 		book_data = database.get_book(book_id);
@@ -126,7 +126,7 @@ def create_app(test_config=None):
 		book_data["id"] = book_id;
 		return json_response(book_data);
 
-	@app.route("/books/<book_id>", methods=["DELETE"])
+	@app.route("/api/books/<book_id>", methods=["DELETE"])
 	def delete_book(book_id):
 		# attempt to delete book
 		delete_count = database.delete_book(book_id);
@@ -136,7 +136,7 @@ def create_app(test_config=None):
 		# handle success
 		return f"deleted book with id={book_id}", 200;
 
-	@app.route("/books", methods=["POST"])
+	@app.route("/api/books", methods=["POST"])
 	def add_book():
 		# parse request json
 		data = request.get_json();

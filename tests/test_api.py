@@ -116,7 +116,7 @@ def test_crud(redis_flush):
 def test_export_json(redis_flush):
 	db = redis_flush;
 
-	url = urljoin(api.WEB_URL, "books");
+	url = urljoin(api.WEB_URL, "api/books");
 	response = requests.request("GET", url)
 	assert(response.status_code == HTTP_OK);
 	assert(response.headers.get('content-type') == "application/json; charset=utf-8");
@@ -125,7 +125,7 @@ def test_export_csv_1(redis_flush):
 	db = redis_flush;
 
 	# build request
-	url = urljoin(api.WEB_URL, "books");
+	url = urljoin(api.WEB_URL, "api/books");
 	headers = { 'Accept': 'text/csv' }
 	payload = {}
 
@@ -138,7 +138,7 @@ def test_export_csv_2(redis_flush):
 	db = redis_flush;
 
 	# build request
-	url = urljoin(api.WEB_URL, "books/csv");
+	url = urljoin(api.WEB_URL, "api/books/csv");
 
 	# validate response
 	response = requests.request("GET", url)
@@ -149,7 +149,7 @@ def test_export_xml(redis_flush):
 	db = redis_flush;
 
 	# build request
-	url = urljoin(api.WEB_URL, "books");
+	url = urljoin(api.WEB_URL, "api/books");
 	headers = { 'Accept': 'text/xml' }
 	payload = {}
 
@@ -162,7 +162,7 @@ def test_export_xml_2(redis_flush):
 	db = redis_flush;
 
 	# build request
-	url = urljoin(api.WEB_URL, "books/xml");
+	url = urljoin(api.WEB_URL, "api/books/xml");
 
 	# validate response
 	response = requests.request("GET", url)
