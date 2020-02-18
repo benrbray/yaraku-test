@@ -1,10 +1,10 @@
 import yaraku_ml;
-import yaraku_ml.services;
+import yaraku_ml.nlp;
 import time;
 
 if __name__ == "__main__":
-	# initialize word2vec
-	yaraku_ml.services.init();
+	# initialize nlp
+	yaraku_ml.nlp.init();
 
 	# run flask in debug mode
 	print("Starting YARAKU ML...");

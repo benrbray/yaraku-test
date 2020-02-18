@@ -4,8 +4,6 @@ Benjamin Bray (benrbray@gmail.com)
 
 *18 February 2020*
 
-
-
 ## Overview
 
 This project implements a simple web service that allows the user to upload book titles and ask for book recommendations based on the uploaded catalog of books.  This document contains a ful description of the project's functionality and a discussion of design choices made during development.
@@ -55,7 +53,7 @@ I chose the following tools to implement the project:
 * `Docker` and `docker-compose` for containerization and distribution.
 * `flask` with `python3` for the web API, deployed with `gunicorn`.
 * `redis` as a database and message broker, with the `rq` job queue for scheduling background workers.
-* `nltk` for basic text processing (tokenization, stemming).
+* `nltk` for basic text processing (tokenization, stemming, stopword removal).
 * `gensim` for precomputed word2vec embedings.
 
 This combination has the following advantages:
@@ -73,9 +71,37 @@ The application is divided into four Docker containers.
 * `worker` runs in the background, and runs a K-means algorithm on word2vec embeddings of book titles in order to generate groupings.
 * `tests` contains basic tests of application functionality.
 
-## Functionality
+## `ml` Data API
 
-### Books API
+The `ml` service (running on `localhost:5001`) exposes a REST API for book recommendations and grouping.  All request data data should be encoded as `application/json`.
+
+#### `POST /addbook`
+
+Inform the `ml` service that a new book has been added to the database.  Used to update the recommendation word index, and to help the `ml` service decide when to update groupings.  Expects `application/json` data with the `title` and `id` fields present.  For example,
+
+```
+curl --location --request POST 'localhost:5001/addbook' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+	"id" : 0,
+	"title" : "This is A Title: Subtitle",
+	"author" : "Benjamin Bray"
+}'
+```
+
+Acknowledges the request with `200 OK`, or responds with an error.
+
+### Recommendations
+
+#### `GET /recommend`
+
+### Grouping
+
+#### `GET /group_ids`
+
+#### `GET /group_books`
+
+## `web` Books API
 
 The `web` service (running on `localhost:5000`) exposes a REST API for adding, reading, and deleting books.  All request data data should be encoded as `application/json`.  Typically, the API endpoints send and receive book objects, which have the following form:
 
@@ -168,6 +194,22 @@ Possible responses:
 
 ## Limitations
 
+Below, I discuss some limitations of the appliation.  These limitations are also reflected in `#TODO` comments that I intentionally left throughout the code.
+
+#### Database
+
 * Due to the use of `rq` and `redis`, this application won't be able to run on Windows systems (except possibly through WSL, although this is untested).
 * By default, `rq` considers jobs to fail if they take longer than 180 seconds.  Depending on the needs of the application, this limit could be extended.
 * By default, `rq` only stores the results of tasks for 500 seconds.  Depending on the needs of the application, this limit could be extended.
+* For the most part, the application does not gracefully handle Redis connection failures.  If any Redis command fails, the database will need to be cleaned up manually (or flushed entirely).  Because this application is very low-stakes, I made this tradeoff in the interest of time and simplicity.  For high-stakes applications, it would be important to ensure the database code is robust to failures.
+* The application uses a number of O(N) database accesses, where N is the number of books.  For hundreds of books, this is acceptable, but the application may slow down dramatically if thousands of books are added.  This could be solved with paging, or by batching requests.
+
+#### Synchronization Issues
+
+Because `ml` and `web` are separate services working on the same data, they may not always be in sync.  In particular, the following may occur:
+
+* The `ml` service might recommend a book that has already been deleted.
+* The `ml` service might not have assigned a grouping to recently-added books. 
+* Groups computed by the `ml` service may contain books that have been deleted. 
+
+At the moment, these errors won't cause the application to crash, but they are not handled very gracefully.

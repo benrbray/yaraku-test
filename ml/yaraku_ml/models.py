@@ -7,7 +7,7 @@ import rq;
 from rq.job import Job;
 
 # app source
-from . import services;
+from . import nlp;
 from . import database;
 from .database import redis;
 
@@ -23,7 +23,7 @@ def init_redis():
 
 def rec_add_title(book_title, book_id):
 	# split title into words
-	words = services.tokenize_title(book_title);
+	words = nlp.tokenize_title(book_title);
 
 	# for each word in title, store book_id in word lookup table
 	pipe = redis.pipeline();
@@ -38,7 +38,7 @@ def rec_add_title(book_title, book_id):
 
 def rec_delete_title(book_title, book_id):
 	# split title into words
-	words = services.tokenize_title(book_title);
+	words = nlp.tokenize_title(book_title);
 
 	# for each word in title, remove book_id from word lookup table
 	pipe = redis.pipeline();
@@ -54,7 +54,7 @@ def rec_delete_title(book_title, book_id):
 
 def rec_recommend(book, num_recommend=5):
 	# split title into words
-	words = services.tokenize_title(book["title"]);
+	words = nlp.tokenize_title(book["title"]);
 
 	# find all books with at least one word in common
 	pipe = redis.pipeline();
@@ -93,12 +93,12 @@ def rec_recommend(book, num_recommend=5):
 
 def group_add_book(book_id):
 	# keep track of number of books added since last update to groups
-	buffer_size = redis.incr("group:waiting");
+	buffer_size = int(redis.incr("group:waiting"));
 
 	# once queue has reached max length, schedule grouping job
 	# TODO: read max_size from config file
-	max_size = 2;
-	if buffer_size > max_size:
+	max_size = 1;
+	if buffer_size >= max_size:
 		group_regroup();
 
 def group_regroup():
@@ -106,7 +106,7 @@ def group_regroup():
 	# schedule worker process
 	# TODO: ensure regroup job isn't already running
 	job = queue.enqueue("tasks.process");
-	print("\t", job.id);
+	print("\tjob id:", job.id);
 	# respond with job identifier
 	return {
 		"task_id" : job.id

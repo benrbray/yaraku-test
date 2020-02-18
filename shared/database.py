@@ -64,3 +64,46 @@ def delete_book(id):
 	
 	# success
 	return delete_count;
+
+## Groups ----------------------------------------------------------------------
+
+def get_group_ids():
+	#TODO: pagination? (use sorted set / zrange)
+	#TODO: pipeline in batches?  (if expecting large number of books)
+
+	# count groups
+	num_groups = redis.get("group:count");
+	if num_groups is None:
+		return [];
+	num_groups = int(num_groups);
+	if num_groups == 0:
+		return [];
+
+	# pipelined read
+	pipe = redis.pipeline();
+	for k in range(num_groups):
+		group_key = f"group:{k}";
+		pipe.smembers(group_key);
+	
+	group_ids = [];
+	for idx,group in enumerate(pipe.execute()):
+		# skip empty groups
+		if not group or len(group) == 0: continue;
+		group_ids.append(list(group));
+	
+	return group_ids;
+
+def get_group_books():
+	group_ids = get_group_ids();
+	group_list = [];
+
+	for group in group_ids:
+		group_books = []
+		for book_id in group:
+			book = get_book(book_id);
+			if book is not None:
+				group_books.append(book);
+
+		group_list.append(group_books);
+
+	return group_list;

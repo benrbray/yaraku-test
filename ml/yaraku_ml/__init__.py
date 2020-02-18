@@ -81,10 +81,23 @@ def create_app(test_config=None):
 
 		return json_response(similar_books);
 	
-	@app.route("/schedule")
-	def schedule():
-		task_info = models.schedule_job();
-		return json_response(task_info);
+	@app.route("/group_ids")
+	def get_group_ids():
+		"""
+		Retrive JSON with grouping information.  Returns a list of groups,
+		where each group is a list of <book_id>s.  
+		"""
+		group_ids = database.get_group_ids();
+		return json_response(group_ids);
+
+	@app.route("/group_books")
+	def get_group_books():
+		"""
+		Retrive JSON with grouping information.  Returns a list of groups,
+		where each group is a list of book objects.
+		"""
+		group_books = database.get_group_books();
+		return json_response(group_books);
 
 	#### AFTER REQUEST ##################################################
 
