@@ -27,8 +27,19 @@ def init():
 	if stemmer is None:
 		stemmer = nltk.stem.PorterStemmer();
 
-
 def tokenize_title(title):
+	"""
+	Converts the title to a sequence of words in several steps:
+		1. convert to lower case
+		2. tokenize
+		2. remove stop words (the, and, by, ...)
+	@param (title) string
+	"""
+	words = tokenizer.tokenize(title.lower());
+	words = [w for w in words if w not in stopwords];
+	return words;
+
+def stem_title(title):
 	"""
 	Converts the title to a sequence of words in several steps:
 		1. convert to lower case

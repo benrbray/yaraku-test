@@ -3,9 +3,27 @@ import database;
 from database import redis as db;
 import nlp;
 
+# scientific libraries
+import gensim.downloader;
+import numpy as np;
+import sklearn as skl;
+import sklearn.cluster;
+
+w2v_model = None;
+
+def init_word2vec():
+	global w2v_model;
+	if w2v_model is not None:
+		return;
+	
+	w2v_model = gensim.downloader.load("glove-wiki-gigaword-50");
+
 def process():
 	print("worker :: computing groups");
+
+	# initialization
 	nlp.init();
+	init_word2vec();
 	
 	# get list of all books
 	book_list = database.get_all_books();
@@ -15,22 +33,29 @@ def process():
 		db.set("group:count", 0);
 		return False;
 
-	# convert titles to lists of word tokens
-	book_titles = [];
-	max_len = 0;
-	for book in book_list:
-		words = nlp.tokenize_title(book["title"]);
-		book_titles.append(words);
-		max_len = max(max_len, len(words));
-
-	# assign groups based on word length
-	num_groups = max_len;
-	groups = [ [] for k in range(num_groups) ];
+	# compute word2vec embeddings for each title
+	w2v_dim = 50;
+	title_vecs = np.zeros((num_books, w2v_dim));
 
 	for idx in range(num_books):
+		title_words = nlp.tokenize_title(book_list[idx]["title"]);
+		title_vec = np.zeros(w2v_dim);
+		for w in title_words:
+			if w in w2v_model:
+				title_vec += w2v_model.word_vec(w);
+			else:
+				print(w)
+		
+		title_vecs[idx,:] = title_vec;
+
+	# k-means clustering
+	num_groups = 5;
+	kmeans = skl.cluster.KMeans(n_clusters=num_groups).fit(title_vecs);
+
+	groups = [ [] for k in range(num_groups) ];
+	for idx in range(num_books):
 		book_id = book_list[idx]["id"];
-		words = book_titles[idx];
-		groups[len(words)-1].append(book_id);
+		groups[kmeans.labels_[idx]].append(book_id);
 
 	# clear old groups
 	old_num_groups = db.getset("group:count", 0);
