@@ -8,10 +8,10 @@ from rq.job import Job;
 
 # app source
 from . import services;
-
+from . import database;
+from .database import redis;
 
 # initialize redis connections
-redis = Redis(host='redis', port=6379, decode_responses=True)
 queue = rq.Queue(connection=redis);
 
 def init_redis():
@@ -111,54 +111,3 @@ def group_regroup():
 	return {
 		"task_id" : job.id
 	};
-
-## Books API -------------------------------------------------------------------
-
-def get_book(id):
-	book_key = f"book:{id}";
-	return redis.hgetall(book_key);
-
-def get_all_books():
-	#TODO: pagination? (use sorted set / zrange)
-	#TODO: pipeline in batches?  (if expecting large number of books)
-
-	# get (ordered) list of book_ids
-	book_ids = list(redis.zrange("book_ids", 0, -1));
-
-	# pipelined read
-	pipe = redis.pipeline();
-	for book_id in book_ids:
-		book_key = f"book:{book_id}";
-		pipe.hgetall(book_key);
-	
-	book_list = [];
-	for idx,book in enumerate(pipe.execute()):
-		# skip empty books
-		if not book: continue;
-		# retain book id
-		book["id"] = book_ids[idx];
-		book_list.append(book);
-	
-	return book_list;
-
-
-def add_book(title, author):
-	# TODO: error handling for redis add_book?
-	# generate new book id
-	book_id = redis.incr("next_book_id", 1);
-	redis.zadd("book_ids", { book_id : book_id });
-	# set book data
-	book_key = f"book:{book_id}";
-	redis.hset(book_key, "title", title);
-	redis.hset(book_key, "author", author);
-	# success
-	return book_id;
-
-def delete_book(id):
-	# delete book object
-	book_key = f"book:{id}";
-	redis.delete(book_key);
-	# delete id
-	redis.zrem("book_ids", id);
-	# success
-	return True;

@@ -6,11 +6,12 @@ LABEL maintainer="Benjamin Bray <benrbray@gmail.com>"
 WORKDIR /opt/yaraku_ml
 
 # install dependencies for python (done first for docker caching)
-COPY requirements.txt .
+COPY ./ml/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # copy application code
-COPY . .
+COPY ./ml .
+COPY ./shared ./yaraku_ml
 
 # expose ports
 EXPOSE 5000

@@ -6,11 +6,12 @@ LABEL maintainer="Benjamin Bray <benrbray@gmail.com>"
 WORKDIR /opt/yaraku_web
 
 # install dependencies for python (done first for docker caching)
-COPY requirements.txt .
+COPY ./web/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # copy application code
-COPY . .
+COPY ./web .
+COPY ./shared ./yaraku_web
 
 # expose ports
 EXPOSE 5000

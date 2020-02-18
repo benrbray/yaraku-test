@@ -13,8 +13,8 @@ import json;
 import os;
 
 # yaraku app source
-from . import models;
-from .models import redis;
+from . import database;
+from .database import redis;
 
 #### HELPER FUNCTIONS ##########################################################
 
@@ -44,7 +44,7 @@ def create_app(test_config=None):
 
 	# initialize database
 	#TODO: init_app?  use flask-redis?
-	models.init_redis();
+	database.init_redis();
 
 	## Web Interface -----------------------------------------------------------
 
@@ -56,7 +56,7 @@ def create_app(test_config=None):
 	@app.route("/web/books/<book_id>", methods=["GET"])
 	def web_book(book_id):
 		# get book data
-		book_data = models.get_book(book_id);
+		book_data = database.get_book(book_id);
 		book_data["id"] = book_id;
 		# if book not found, reply with 404
 		if not book_data:
@@ -69,7 +69,7 @@ def create_app(test_config=None):
 	@app.route("/books", methods=["GET"])
 	@accept_fallback
 	def get_book_list():
-		book_list = models.get_all_books();
+		book_list = database.get_all_books();
 		return json_response(book_list);
 
 	@app.route("/books/csv")
@@ -80,7 +80,7 @@ def create_app(test_config=None):
 		@flask.stream_with_context
 		def generate():
 			#TODO: improve streaming with pagination
-			book_list = models.get_all_books();
+			book_list = database.get_all_books();
 			for book in book_list:
 				book_data = [ book["title"], book["author"] ];
 				yield ','.join(book_data) + "\n";
@@ -95,7 +95,7 @@ def create_app(test_config=None):
 	@get_book_list.support("text/xml")
 	def get_books_xml():
 		# get book list
-		book_list = models.get_all_books();
+		book_list = database.get_all_books();
 
 		# generate xml
 		root = XML.Element("root");
@@ -116,7 +116,7 @@ def create_app(test_config=None):
 	@app.route("/books/<book_id>", methods=["GET"])
 	def get_book(book_id):
 		# search for book_id in database
-		book_data = models.get_book(book_id);
+		book_data = database.get_book(book_id);
 
 		# if book not found, reply with 404
 		if not book_data:
@@ -129,7 +129,7 @@ def create_app(test_config=None):
 	@app.route("/books/<book_id>", methods=["DELETE"])
 	def delete_book(book_id):
 		# attempt to delete book
-		delete_count = models.delete_book(book_id);
+		delete_count = database.delete_book(book_id);
 		# handle failure
 		if delete_count < 1:
 			abort(404, f"failed to delete; no book exists with id={book_id}");
@@ -151,7 +151,7 @@ def create_app(test_config=None):
 
 		# add to database
 		# TODO: handle duplicate books?
-		book_id = models.add_book(bookTitle, bookAuthor);
+		book_id = database.add_book(bookTitle, bookAuthor);
 
 		# send book to ml service
 		req = requests.post('http://ml:5000/addbook', json={

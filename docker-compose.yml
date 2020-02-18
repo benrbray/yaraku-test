@@ -2,7 +2,9 @@ version: "3"
 services:
 
   web:
-    build: ./web
+    build:
+      context: .
+      dockerfile: Dockerfile.web
     image: benrbray/yaraku-web
     environment:
       - PYTHONUNBUFFERED=1   # necessary to see python stdout in logs
@@ -15,7 +17,9 @@ services:
       - redis
 
   ml:
-    build: ./ml
+    build: 
+      context: .
+      dockerfile: Dockerfile.ml
     image: benrbray/yaraku-ml
     environment:
       - PYTHONUNBUFFERED=1   # necessary to see python stdout in logs
@@ -28,7 +32,9 @@ services:
       - redis
 
   worker:
-    build: ./worker
+    build: 
+      context: .
+      dockerfile: Dockerfile.worker
     image: benrbray/yaraku-worker
     environment:
       - PYTHONUNBUFFERED=1   # necessary to see python stdout in logs

@@ -4,8 +4,9 @@ FROM python:3
 WORKDIR /opt/yaraku-worker 
 
 # install dependencies for python (done first for docker caching)
-COPY requirements.txt .
+COPY ./worker/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # copy application code
-COPY . .
+COPY ./worker .
+COPY ./shared .

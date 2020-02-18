@@ -2,7 +2,8 @@ import flask;
 from flask import Flask, escape, abort, jsonify, request;
 
 from . import models;
-from .models import redis;
+from . import database;
+from .database import redis;
 import json;
 
 from werkzeug.exceptions import HTTPException;
@@ -34,7 +35,7 @@ def create_app(test_config=None):
 	app.app_context().push();
 
 	# initialize database
-	models.init_redis();
+	database.init_redis();
 	
 	@app.route("/addbook", methods=["POST"])
 	def add_book():
