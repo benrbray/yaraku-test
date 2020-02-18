@@ -7,6 +7,10 @@ start:
 stop:
 	docker-compose down
 
+test:
+	docker-compose up -d
+	docker exec yaraku_tests_1 pytest
+
 upload_books:
 	docker exec yaraku_tests_1 python upload_books.py
 

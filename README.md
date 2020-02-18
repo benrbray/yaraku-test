@@ -8,11 +8,30 @@ Benjamin Bray (benrbray@gmail.com)
 
 This project implements a simple web service that allows the user to upload book titles and ask for book recommendations based on the uploaded catalog of books.  This document contains a ful description of the project's functionality and a discussion of design choices made during development.
 
-### Setup
+### Setup (Makefile)
 
 The project is designed to run on `localhost` as a web application.  The web interface runs on `localhost:5000` and the standalone machine learning service runs on `localhost:5001`. 
 
 This application should work on both Linux/macOS, although I was only able to test on a machine running `Ubuntu 18.04`.  The application is containerized with `Docker` and assembled with `Docker Compose`, which must both be installed on the host system.  Since the project uses `Docker` to install its dependencies, internet access is assumed when building. 
+
+For convenience, I have included a `Makefile` to start, stop, and test the application.
+
+```
+make start         # start the application
+make stop          # stop the application
+make test          # run test suite
+make upload_books  # upload a .csv file containing 60 books
+```
+
+Docker has a habit of leaving behind images and containers, so I included a `Makefile` with a basic cleanup command.  (*Caution:* Depending on your Docker installation, this may influence your Docker images beyond just this project!)
+
+````
+make cleanup
+````
+
+### 
+
+### Setup (Manually)
 
 To start the application (in detached mode), navigate to the top-level project folder and run:
 
@@ -24,12 +43,6 @@ Include the optional `--build` flag to re-build if the source changes.  To stop 
 
 ````
 docker-compose down
-````
-
-Docker has a habit of leaving behind images and containers, so I included a `Makefile` with a basic cleanup command.  (*Caution:* Depending on your Docker installation, this may influence your Docker images beyond just this project!)
-
-````
-make cleanup
 ````
 
 ### Testing
