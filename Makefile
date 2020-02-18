@@ -7,6 +7,9 @@ start:
 stop:
 	docker-compose down
 
+upload_books:
+	docker exec yaraku_tests_1 python upload_books.py
+
 cleanup:
 	docker-compose down -v --rmi all --remove-orphans
 	docker volume prune
