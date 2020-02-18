@@ -19,6 +19,7 @@ For convenience, I have included a `Makefile` to start, stop, and test the appli
 ```
 make start         # start the application
 make stop          # stop the application
+make build         # re-build docker images and start application
 make test          # run test suite
 make upload_books  # upload a .csv file containing 60 books
 ```
