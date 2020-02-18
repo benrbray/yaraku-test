@@ -54,6 +54,7 @@ def create_app(test_config=None):
 
 		# build word index
 		models.rec_add_title(book_title, book_id);
+		models.group_add_book(book_id);
 		return "added book", 200;
 
 	@app.route("/recommend", methods=["POST"])
@@ -78,6 +79,11 @@ def create_app(test_config=None):
 		similar_books = models.rec_recommend(book, count);
 
 		return json_response(similar_books);
+	
+	@app.route("/schedule")
+	def schedule():
+		task_info = models.schedule_job();
+		return json_response(task_info);
 
 	#### AFTER REQUEST ##################################################
 

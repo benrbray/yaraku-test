@@ -27,6 +27,18 @@ services:
     depends_on:
       - redis
 
+  worker:
+    build: ./worker
+    image: benrbray/yaraku-worker
+    environment:
+      - PYTHONUNBUFFERED=1   # necessary to see python stdout in logs
+    command: rq worker --url redis://redis:6379/0
+    volumes:
+      - data_volume:/opt/yaraku/data   # shared with 'web'
+    depends_on:
+      - redis
+      - ml
+
   redis:
     image: redis
     volumes:
@@ -43,6 +55,7 @@ services:
       - redis
       - web
       - ml
+      - worker
 
 volumes:
   data_volume:

@@ -1,8 +1,18 @@
-from redis import Redis;
-from . import services;
+# python
 import collections;
 
+# redis
+from redis import Redis;
+import rq;
+from rq.job import Job;
+
+# app source
+from . import services;
+
+
+# initialize redis connections
 redis = Redis(host='redis', port=6379, decode_responses=True)
+queue = rq.Queue(connection=redis);
 
 def init_redis():
 	pass;
@@ -78,6 +88,29 @@ def rec_recommend(book, num_recommend=5):
 			similar_book["id"] = book_id;
 	
 	return [sb for sb in similar_books if sb];
+
+## Grouping --------------------------------------------------------------------
+
+def group_add_book(book_id):
+	# keep track of number of books added since last update to groups
+	buffer_size = redis.incr("group:waiting");
+
+	# once queue has reached max length, schedule grouping job
+	# TODO: read max_size from config file
+	max_size = 2;
+	if buffer_size > max_size:
+		group_regroup();
+
+def group_regroup():
+	print("ml :: regrouping!!");
+	# schedule worker process
+	# TODO: ensure regroup job isn't already running
+	job = queue.enqueue("tasks.process");
+	print("\t", job.id);
+	# respond with job identifier
+	return {
+		"task_id" : job.id
+	};
 
 ## Books API -------------------------------------------------------------------
 
