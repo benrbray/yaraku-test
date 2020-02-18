@@ -7,15 +7,15 @@ import rq;
 from rq.job import Job;
 
 # app source
-from . import nlp;
 from . import database;
 from .database import redis;
+from . import nlp;
 
 # initialize redis connections
 queue = rq.Queue(connection=redis);
 
-def init_redis():
-	pass;
+def init():
+	nlp.init();
 
 #### DATABASE ACCESS ###########################################################
 

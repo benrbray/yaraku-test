@@ -34,8 +34,8 @@ def create_app(test_config=None):
 	# app context
 	app.app_context().push();
 
-	# initialize database
-	database.init_redis();
+	# initialize
+	models.init();
 	
 	@app.route("/addbook", methods=["POST"])
 	def add_book():

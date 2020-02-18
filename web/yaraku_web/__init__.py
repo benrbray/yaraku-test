@@ -42,10 +42,6 @@ def create_app(test_config=None):
 	# app context
 	app.app_context().push();
 
-	# initialize database
-	#TODO: init_app?  use flask-redis?
-	database.init_redis();
-
 	## Web Interface -----------------------------------------------------------
 
 	@app.route("/", methods=["GET"])
