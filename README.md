@@ -207,6 +207,24 @@ curl --location --request GET 'localhost:5000/api/books' \
 --header 'Accept: text/xml'
 ```
 
+#### `GET /api/titles`
+
+Similar to `GET /api/books`, but returns a list of titles instead.  
+
+* Supports CSV and XML through Accept headers
+* Additionally, supports `GET /api/titles/csv` and `GET /api/titles/xml`
+
+#### `GET /api/authors`
+
+Similar to `GET /api/books`, but returns a list of authors instead.  
+
+* Supports CSV and XML through Accept headers
+* Additionally, supports `GET /api/authors/csv` and `GET /api/authors/xml`
+
+
+
+
+
 #### `GET /api/books/csv` and `GET /api/books/xml`
 
 Convenient alternatives for downloading the list of books in CSV or XML format.  Useful when it  may be inconvenient to set the accept header.
