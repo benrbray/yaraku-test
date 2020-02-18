@@ -27,3 +27,11 @@ def request_insert_book(book_data):
 	headers = { 'Content-Type': 'application/json' }
 	return requests.request("POST", url, headers=headers, json=book_data);
 
+def request_group_ids():
+	url = urljoin(ML_URL, "group_ids");
+	return requests.request("GET", url);
+
+def request_group_books():
+	url = urljoin(ML_URL, "group_books");
+	return requests.request("GET", url);
+
