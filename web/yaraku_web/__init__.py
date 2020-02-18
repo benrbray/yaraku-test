@@ -140,7 +140,7 @@ def create_app(test_config=None):
 		# create http response
 		response = flask.Response(generate());
 		response.headers["Content-Type"] = "text/csv; charset=utf-8";
-		response.headers["Content-Disposition"] = "attachment; filename=result.csv";
+		response.headers["Content-Disposition"] = "attachment; filename=titles.csv";
 		return response;
 
 	@app.route("/api/titles/xml", methods=["GET"])
@@ -160,7 +160,55 @@ def create_app(test_config=None):
 		# create http response
 		response = flask.Response(xml_str);
 		response.headers["Content-Type"] = "text/xml; charset=utf-8";
-		response.headers["Content-Disposition"] = "attachment; filename=result.xml";
+		response.headers["Content-Disposition"] = "attachment; filename=titles.xml";
+		return response;
+
+	
+
+	## Export Authors -----------------------------------------------------------
+
+	@app.route("/api/authors", methods=["GET"])
+	@accept_fallback
+	def get_authors():
+		author_list = database.get_authors();
+		return json_response(author_list);
+
+	@app.route("/api/authors/csv", methods=["GET"])
+	@get_authors.support("text/csv")
+	def get_authors_csv():
+		# stream db contents to csv
+		# (https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/)
+		@flask.stream_with_context
+		def generate():
+			#TODO: improve streaming with pagination
+			author_list = database.get_authors();
+			for author in author_list:
+				yield ','.join(author) + "\n";
+		
+		# create http response
+		response = flask.Response(generate());
+		response.headers["Content-Type"] = "text/csv; charset=utf-8";
+		response.headers["Content-Disposition"] = "attachment; filename=authors.csv";
+		return response;
+
+	@app.route("/api/authors/xml", methods=["GET"])
+	@get_authors.support("text/xml")
+	def get_authors_xml():
+		# get book list
+		author_list = database.get_authors();
+
+		# generate xml
+		root = XML.Element("root");
+		for author in author_list:
+			author_elt = XML.SubElement(root, "author");
+			XML.SubElement(author_elt, "name").text  = author;
+		
+		xml_str = XML.tostring(root, encoding="utf8");
+
+		# create http response
+		response = flask.Response(xml_str);
+		response.headers["Content-Type"] = "text/xml; charset=utf-8";
+		response.headers["Content-Disposition"] = "attachment; filename=authors.xml";
 		return response;
 
 	## CRUD Operations ---------------------------------------------------------

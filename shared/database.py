@@ -33,7 +33,6 @@ def get_all_books():
 	
 	return book_list;
 
-
 def add_book(title, author):
 	# TODO: error handling for redis add_book?
 	# generate new book id
@@ -61,6 +60,18 @@ def delete_book(id):
 	
 	# success
 	return delete_count;
+
+def get_authors():
+	#TODO: maintain authors in database,
+	# instead of re-calculating when needed
+	book_list = get_all_books();
+
+	authors = set();
+	for book in book_list:
+		authors.add(book["author"]);
+	
+	return list(authors);
+
 
 ## Groups ----------------------------------------------------------------------
 
