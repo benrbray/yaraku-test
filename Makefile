@@ -16,5 +16,5 @@ upload_books:
 
 cleanup:
 	docker-compose down -v --rmi all --remove-orphans
-	docker volume prune
+	yes | docker volume prune
 	docker images -q --filter "dangling=true" | xargs docker rmi
