@@ -183,7 +183,7 @@ def create_app(test_config=None):
 			#TODO: improve streaming with pagination
 			author_list = database.get_authors();
 			for author in author_list:
-				yield ','.join(author) + "\n";
+				yield author + "\n";
 		
 		# create http response
 		response = flask.Response(generate());
