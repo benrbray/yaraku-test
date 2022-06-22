@@ -1,5 +1,5 @@
 gensim==3.8.0
-numpy==1.17.4
+numpy==1.22.0
 nltk==3.4.5
 redis==3.3.11
 requests==2.22.0
